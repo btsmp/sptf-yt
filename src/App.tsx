@@ -1,34 +1,56 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useEffect, useState } from 'react'
+import { SpotifyApi } from './utils/SpotifyApi'
+import { UserProfile } from './utils/types'
+import { SpotifyUser } from './components/SpotifyUser'
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [userData, setUserData] = useState<UserProfile | undefined>()
+  const spotifyApiHandler = new SpotifyApi()
+
+  function handleSpotifyLogin() {
+    const authLink = spotifyApiHandler.generateURLtoAuthenticate()
+    window.location.href = authLink
+  }
+
+  async function handleCallbackSpotify(code: string) {
+    await spotifyApiHandler.handleAuthCallback(code)
+    const data = await spotifyApiHandler.getUserInfo()
+    setUserData(data)
+  }
+
+  function clearQueryParameters() {
+    if (window.history.replaceState) {
+      const newUrl = window.location.href.split('?')[0];
+      window.history.replaceState({}, document.title, newUrl);
+    }
+  }
+
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search)
+    const code = urlParams.get('code')
+    if (code) {
+      handleCallbackSpotify(code)
+      clearQueryParameters()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   return (
-    <>
+    <main className='flex flex-col items-center justify-between h-screen'>
+      <h1 className='p-8'>Spotify {'->'} YoutubeMusic</h1>
       <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+        <div className="flex">
+          {userData ? <SpotifyUser data={userData} /> :
+            <button
+              onClick={handleSpotifyLogin}
+              className='bg-green-800 p-4 rounded-md hover:bg-green-600'>
+              Clique para logar no spotify
+            </button>}
+
+        </div>
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+      <div></div>
+    </main>
   )
 }
 
