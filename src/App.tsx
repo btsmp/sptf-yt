@@ -1,22 +1,23 @@
 import { useEffect, useState } from 'react'
-import { SpotifyApi } from './utils/SpotifyApi'
+import { SpotifyApiAuth } from './utils/SpotifyApiAuth'
 import { UserProfile } from './utils/types'
 import { SpotifyUser } from './components/SpotifyUser'
 
 function App() {
   const [userData, setUserData] = useState<UserProfile | undefined>()
-  const spotifyApiHandler = new SpotifyApi()
+  const spotifyAuthHandler = new SpotifyApiAuth()
 
   function handleSpotifyLogin() {
-    const authLink = spotifyApiHandler.generateURLtoAuthenticate()
+    const authLink = spotifyAuthHandler.generateURLtoAuthenticate()
     window.location.href = authLink
   }
 
   async function handleCallbackSpotify(code: string) {
-    await spotifyApiHandler.handleAuthCallback(code)
-    const data = await spotifyApiHandler.getUserInfo()
+    await spotifyAuthHandler.handleAuthCallback(code)
+    const data = await spotifyAuthHandler.getUserInfo()
     setUserData(data)
   }
+
 
   function clearQueryParameters() {
     if (window.history.replaceState) {

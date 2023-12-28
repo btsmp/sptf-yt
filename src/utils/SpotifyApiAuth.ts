@@ -1,16 +1,17 @@
 import axios, { AxiosInstance } from 'axios';
 import { UserProfile } from './types';
+import CLIENT_SECRET from '../../config'
 
 
-export class SpotifyApi {
+export class SpotifyApiAuth {
   private readonly BASE_URL='https://api.spotify.com/v1';
   private readonly REDIRECT_URI='http://localhost:5173/'
   private readonly SCOPE='user-read-private user-read-email user-library-read'
   private readonly CLIENT_ID='31d1acda698d48beb6f3086e67d7898a'
-  private readonly CLIENT_SECRET: string= (process.env.CLIENT_SECRET as string)
+  private readonly CLIENT_SECRET = CLIENT_SECRET
   private endpoint!: AxiosInstance;
 
-  public createAxiosInstance(token: string) {
+  public createAxiosInstance(token: string): void {
     this.endpoint = axios.create({
       baseURL: this.BASE_URL,
       headers: {Authorization: 'Bearer ' + token} 
@@ -22,7 +23,7 @@ export class SpotifyApi {
     return response.data
   }
 
-  public async handleAuthCallback(code: string) {
+  public async handleAuthCallback(code: string): Promise<void> {
     
     const params = new URLSearchParams( {
       client_id: this.CLIENT_ID,
@@ -44,7 +45,7 @@ export class SpotifyApi {
     this.createAxiosInstance(access_token)
   }
 
-  public generateURLtoAuthenticate() {
+  public generateURLtoAuthenticate(): string {
     const authorizationBaseUrl =  'https://accounts.spotify.com/authorize'
     const params = new URLSearchParams({
       response_type: 'code',
@@ -52,10 +53,29 @@ export class SpotifyApi {
       scope: this.SCOPE,
       redirect_uri: this.REDIRECT_URI,
     })
+    console.log(this.CLIENT_SECRET)
     return `${authorizationBaseUrl}?${params.toString()}` 
   }
+  
+  public async getUserTracks(quantity: number) {
+    const market= 'BR'
+    const limit = 50
+    const urls: string[] = []
+    let offset;
 
-  get clientId() {
-    return this.CLIENT_ID
+    for (offset = 0; offset < quantity; offset += limit) {
+      urls.push(`/me/tracks?market=${market}&limit=50&offset=${offset}`)
+    }
+
+    const responses = await Promise.all(urls.map(async url => {
+      const res = await this.endpoint.get(url)
+      return res.data.items
+    }));
+    const uniqueArray = responses.flat()
+
+    uniqueArray.forEach(track => {
+      console.log(track.track.name)
+    })
+
   }
 }
