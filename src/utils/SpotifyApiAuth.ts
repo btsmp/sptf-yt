@@ -5,7 +5,7 @@ import CLIENT_SECRET from '../../config'
 
 export class SpotifyApiAuth {
   private readonly BASE_URL='https://api.spotify.com/v1';
-  private readonly REDIRECT_URI='http://localhost:5173/'
+  private readonly REDIRECT_URI='https://sptf-yt.vercel.app/'
   private readonly SCOPE='user-read-private user-read-email user-library-read'
   private readonly CLIENT_ID='31d1acda698d48beb6f3086e67d7898a'
   private readonly CLIENT_SECRET = CLIENT_SECRET
